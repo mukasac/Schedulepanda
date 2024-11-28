@@ -133,10 +133,10 @@ export default function Component() {
             </NavigationMenu>
             
             <Button variant="ghost" asChild>
-              <Link href="/login">Log in</Link>
+              <Link href="/sign-in">Log in</Link>
             </Button>
             <Button className="bg-blue-600 hover:bg-blue-700 text-white" asChild>
-              <Link href="/scheduler">Start Free Trial</Link>
+              <Link href="/sign-in">Start Free Trial</Link>
             </Button>
           </div>
           <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileMenuOpen(true)}>

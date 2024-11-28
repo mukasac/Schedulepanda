@@ -6,6 +6,7 @@ import { Providers } from '@/providers';
 import { Analytics } from '@/components/analytics';
 import { TailwindIndicator } from '../components/tailwind-indicator';
 import { Toaster } from '@/components/ui/toaster';
+import { ClerkProvider, SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
@@ -88,17 +89,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning className={inter.variable}>
-      <body className="min-h-screen bg-background font-sans antialiased">
-        <Providers>
-          <div className="relative flex min-h-screen flex-col">
-            <div className="flex-1">{children}</div>
-          </div>
-          <Toaster />
-          <TailwindIndicator />
-        </Providers>
-        <Analytics />
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en" suppressHydrationWarning className={inter.variable}>
+        <body className="min-h-screen bg-background font-sans antialiased">
+          <Providers>
+            <div className="relative flex min-h-screen flex-col">
+              <div className="flex-1">{children}</div>
+            </div>
+            <Toaster />
+            <TailwindIndicator />
+          </Providers>
+          <Analytics />
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

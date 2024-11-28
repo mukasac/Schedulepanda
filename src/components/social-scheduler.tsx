@@ -69,6 +69,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { UserButton } from "@clerk/nextjs"
 
 interface Platform {
   id: string;
@@ -490,6 +491,7 @@ export function SocialScheduler() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            <UserButton/>
           </div>
         </div>
 
