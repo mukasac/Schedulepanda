@@ -6,7 +6,7 @@ import { Providers } from '@/providers';
 import { Analytics } from '@/components/analytics';
 import { TailwindIndicator } from '../components/tailwind-indicator';
 import { Toaster } from '@/components/ui/toaster';
-import { ClerkProvider, SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
+import { ClerkProvider } from '@clerk/nextjs';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
