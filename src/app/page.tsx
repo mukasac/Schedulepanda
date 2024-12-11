@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
+import { SignInButton, SignUpButton, UserButton, useUser } from "@clerk/nextjs"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -95,6 +96,7 @@ const testimonials = [
 
 export default function Component() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const { isSignedIn, user } = useUser()
 
   return (
     <div className="bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 min-h-screen">
@@ -132,12 +134,22 @@ export default function Component() {
               </NavigationMenuList>
             </NavigationMenu>
             
-            <Button variant="ghost" asChild>
-              <Link href="/login">Log in</Link>
-            </Button>
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white" asChild>
-              <Link href="/scheduler">Start Free Trial</Link>
-            </Button>
+            {isSignedIn ? (
+              <UserButton afterSignOutUrl="/" />
+            ) : (
+              <>
+                <Button variant="ghost" asChild>
+                  <SignInButton mode="modal">
+                    <span>Log in</span>
+                  </SignInButton>
+                </Button>
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white" asChild>
+                  <SignUpButton mode="modal">
+                    <span>Start Free Trial</span>
+                  </SignUpButton>
+                </Button>
+              </>
+            )}
           </div>
           <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileMenuOpen(true)}>
             <Menu className="h-6 w-6" />
@@ -175,15 +187,26 @@ export default function Component() {
             >
               Pricing
             </Link>
-            <Button variant="ghost" asChild className="justify-start">
-              <Link href="/login">Log in</Link>
-            </Button>
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white" asChild>
-              <Link href="/scheduler">Start Free Trial</Link>
-            </Button>
+            {isSignedIn ? (
+              <UserButton afterSignOutUrl="/" />
+            ) : (
+              <>
+                <SignInButton mode="modal">
+                  <Button variant="ghost" className="w-full justify-start">
+                    Log in
+                  </Button>
+                </SignInButton>
+                <SignUpButton mode="modal">
+                  <Button className="bg-blue-600 hover:bg-blue-700 text-white w-full">
+                    Start Free Trial
+                  </Button>
+                </SignUpButton>
+              </>
+            )}
           </div>
         </div>
       )}
+
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-6">
         <div className="container mx-auto text-center">
@@ -323,8 +346,7 @@ export default function Component() {
                     <div>
                       <p className="font-semibold">{testimonial.author}</p>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {testimonial.role}, {testimonial.company}
-                      </p>
+                        {testimonial.role}, {testimonial.company}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -399,7 +421,6 @@ export default function Component() {
               <ul className="space-y-2">
                 <li><Link href="/privacy" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">Privacy</Link></li>
                 <li><Link href="/terms" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">Terms</Link></li>
-                
               </ul>
             </div>
           </div>
