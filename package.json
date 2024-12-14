@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@apollo/client": "^3.12.3",
     "@clerk/nextjs": "^6.9.0",
     "@hookform/resolvers": "^3.3.2",
     "@next/font": "^14.2.15",
@@ -39,6 +40,7 @@
     "date-fns": "^2.30.0",
     "emoji-picker-react": "^4.12.0",
     "framer-motion": "^11.13.5",
+    "graphql": "^16.9.0",
     "lucide-react": "^0.294.0",
     "next": "^14.2.18",
     "next-themes": "^0.2.1",
