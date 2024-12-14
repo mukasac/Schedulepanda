@@ -39,6 +39,14 @@ mutation Mutation($platformId: ID!, $clerkId: ID!) {
 }
 `
 
+const DISCONNECT_PLATFORM = gql`
+mutation Mutation($platformId: ID!, $clerkId: ID!) {
+  disconnectUserFromPlatform(platformId: $platformId, clerkId: $clerkId) {
+    id
+  }
+}
+`
+
 
 const GET_USER_PLATFROMS = gql`
 query GetUserPlatforms($clerkId:ID!) {
@@ -62,6 +70,15 @@ const ConnectedPlatformsSidebar = ({user}:{user:any}) => {
       refetchQueries:[
         "GetUserPlatforms",
         GET_USER_PLATFROMS
+      ]
+     })
+
+
+
+     const [disconnectUserFromPlatform,disconnectionResponse] = useMutation(DISCONNECT_PLATFORM,{
+      refetchQueries:[
+        "GetUserPlatforms",
+         GET_USER_PLATFROMS
       ]
      })
 
@@ -113,13 +130,14 @@ const ConnectedPlatformsSidebar = ({user}:{user:any}) => {
     };
   
     const handleDisconnectPlatform = (platformId: string) => {
-      setPlatforms(current =>
-        current.map(p => 
-          p.id === platformId 
-            ? { ...p, connected: false, status: 'expired' as const }
-            : p
-        )
-      );
+      if(user){
+        disconnectUserFromPlatform({
+          variables:{
+            platformId:platformId,
+            clerkId:user.id
+          }
+         })
+       }
       toast({
         title: "Platform Disconnected",
         description: "You can reconnect the platform at any time.",
@@ -151,7 +169,6 @@ const ConnectedPlatformsSidebar = ({user}:{user:any}) => {
                 {platforms.map(platform =>{
 
                   const isConnected = userPlatforms.some((item)=> item.id === platform.id)
-                  console.log(isConnected,'-------->conn')
                  
                    return (
                     <div 
@@ -179,7 +196,13 @@ const ConnectedPlatformsSidebar = ({user}:{user:any}) => {
                         }
                       >
                         {isConnected ? (
-                          <LogOut className="w-4 h-4" />
+                          <div>
+                            {
+                              disconnectionResponse.loading ? <div>Loading..</div> :
+                              <LogOut className="w-4 h-4" />
+                            }
+                          </div>
+                          
                         ) : (
                           <div>
                             {
