@@ -1,6 +1,6 @@
 "use client"
 
-import React,{useEffect} from "react";
+import React,{useEffect, useState} from "react";
 import {
     Command,
     CommandEmpty,
@@ -41,16 +41,22 @@ const PlatformSelector = () => {
 
     useEffect(()=>{
        if(data && data.getAllSurpportedPlatforms){
-           console.log(data.getAllSurpportedPlatforms,'----->dataaaa')
+          setSelectedPlatforms(data.getAllSurpportedPlatforms)
        }
     },[data])
   
-    const connectedPlatforms: Platform[] = [
-      { id: 'twitter', name: 'Twitter', iconUrl: '𝕏', connected: true },
-      { id: 'instagram', name: 'Instagram', iconUrl: '📸', connected: true },
-      { id: 'facebook', name: 'Facebook', iconUrl: '👤', connected: true },
-      { id: 'linkedin', name: 'LinkedIn', iconUrl: '💼', connected: true }
-    ];
+    // const connectedPlatforms: Platform[] = [
+    //   { id: 'twitter', name: 'Twitter', iconUrl: '𝕏', connected: true },
+    //   { id: 'instagram', name: 'Instagram', iconUrl: '📸', connected: true },
+    //   { id: 'facebook', name: 'Facebook', iconUrl: '👤', connected: true },
+    //   { id: 'linkedin', name: 'LinkedIn', iconUrl: '💼', connected: true }
+    // ];
+
+    const [connectedPlatforms,setConnectedPlatforms] = useState<Platform[]>([])
+
+    useEffect(()=>{
+
+    },[])
   
     const togglePlatform = (platformId: string) => {
       setSelectedPlatforms(current =>
