@@ -1,3 +1,5 @@
+"use client"
+
 // src/app/layout.tsx
 import './globals.css'
 import type { Metadata, Viewport } from 'next'
@@ -7,6 +9,8 @@ import { Providers } from '@/providers'
 import { Analytics } from '@/components/analytics'
 import { TailwindIndicator } from '../components/tailwind-indicator'
 import { Toaster } from '@/components/ui/toaster'
+import {ApolloClient, ApolloProvider,InMemoryCache} from "@apollo/client"
+import { API_URL } from 'network/api'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 
@@ -20,7 +24,9 @@ export const viewport: Viewport = {
   ]
 }
 
-export const metadata: Metadata = {
+
+//TODO find the right place to configure apollo client or export meta data
+const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://soso-scheduler.com'),
   title: {
     default: 'Soso - Social Media Scheduler',
@@ -83,6 +89,13 @@ export const metadata: Metadata = {
   }
 }
 
+
+//
+const graphQLclient = new ApolloClient({
+  uri:`${API_URL}/gql`,
+  cache:new InMemoryCache()
+})
+
 export default function RootLayout({
   children,
 }: {
@@ -92,6 +105,8 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className={inter.variable}>
       <ClerkProvider>
         <body className="min-h-screen bg-background font-sans antialiased">
+          {/* graphQL provider */}
+          <ApolloProvider client={graphQLclient}>
           <Providers>
             <div className="relative flex min-h-screen flex-col">
               <div className="flex-1">{children}</div>
@@ -99,6 +114,7 @@ export default function RootLayout({
             <Toaster />
             <TailwindIndicator />
           </Providers>
+          </ApolloProvider>
           <Analytics />
         </body>
       </ClerkProvider>

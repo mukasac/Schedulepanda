@@ -304,3 +304,12 @@ export interface DateRange {
   startDate: Date;
   endDate: Date;
 }
+
+
+export interface Platform {
+  id: string;
+  name: string;
+  iconUrl: string;
+  connected: boolean;
+  status?: 'active' | 'expired' | 'pending';
+}
