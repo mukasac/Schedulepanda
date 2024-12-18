@@ -14,6 +14,7 @@ import { NotificationProvider } from '@/contexts/notification-context';
 import { ModalProvider } from '@/contexts/modal-context';
 import { AuthProvider } from '@/contexts/auth-context';
 import { SocketProvider } from '@/contexts/socket-context';
+import { PlatformContextProvider } from './contexts/platfroms-context';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -53,7 +54,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
                   <DraftsProvider>
                     <ModalProvider>
                       <ThemeProvider>
+                        <PlatformContextProvider>
                         {children}
+                        </PlatformContextProvider>
                       </ThemeProvider>
                     </ModalProvider>
                   </DraftsProvider>

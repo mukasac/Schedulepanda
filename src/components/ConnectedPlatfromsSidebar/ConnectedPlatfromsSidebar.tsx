@@ -17,21 +17,13 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { gql, useMutation, useQuery } from "@apollo/client";
 import Image from "next/image";
 import { useUser } from "@clerk/nextjs";
+import { GET_USER_PLATFROMS, usePlartformContext } from "@/contexts/platfroms-context";
 
 
 
 
-const GET_ALL_PLATFORMS = gql`
-  query GetAllSurpportedPlatforms {
-    getAllSurpportedPlatforms {
-      name
-      id
-      iconUrl
-    }
-  }
-`
 
-const CONNECT_PLATFORM = gql`
+export const CONNECT_PLATFORM = gql`
 mutation Mutation($platformId: ID!, $clerkId: ID!) {
   connectUserToAplatform(platformId: $platformId, clerkId: $clerkId) {
     id
@@ -39,7 +31,7 @@ mutation Mutation($platformId: ID!, $clerkId: ID!) {
 }
 `
 
-const DISCONNECT_PLATFORM = gql`
+export const DISCONNECT_PLATFORM = gql`
 mutation Mutation($platformId: ID!, $clerkId: ID!) {
   disconnectUserFromPlatform(platformId: $platformId, clerkId: $clerkId) {
     id
@@ -48,23 +40,12 @@ mutation Mutation($platformId: ID!, $clerkId: ID!) {
 `
 
 
-const GET_USER_PLATFROMS = gql`
-query GetUserPlatforms($clerkId:ID!) {
-  getUserPlatforms(clerkId: $clerkId) {
-    name
-    id
-  }
-}
-`
+
+
 // Connected Platforms Sidebar Component
 const ConnectedPlatformsSidebar = ({user}:{user:any}) => {
-     const {data} = useQuery(GET_ALL_PLATFORMS)
-
-     const userPlatformsResponse = useQuery(GET_USER_PLATFROMS,{
-      variables:{
-        clerkId:user?.id
-      }
-     })
+   
+    const platfromState = usePlartformContext()
 
      const [connectUserToPlatform,connectionResponse] = useMutation(CONNECT_PLATFORM,{
       refetchQueries:[
@@ -92,26 +73,15 @@ const ConnectedPlatformsSidebar = ({user}:{user:any}) => {
     //   { id: 'pinterest', name: 'Pinterest', iconUrl: '📌', connected: false, status: 'expired' }
     // ]);
 
-    const [platforms, setPlatforms] = React.useState<Platform[]>([])
-    const [userPlatforms,setUserPlatforms] = useState<Platform[]>([])
+    
   
     const [showPlatformSettings, setShowPlatformSettings] = React.useState(false);
     const { toast } = useToast();
 
 
-    useEffect(()=>{
-      if(data && data.getAllSurpportedPlatforms){
-          setPlatforms(data.getAllSurpportedPlatforms)
-      }
-   },[data])
 
 
-   
-   useEffect(()=>{
-    if(userPlatformsResponse && userPlatformsResponse.data && userPlatformsResponse.data.getUserPlatforms){
-        setUserPlatforms(userPlatformsResponse.data.getUserPlatforms)
-    }
- },[userPlatformsResponse])
+
   
     const handleConnectPlatform =(platformId: string) => {
        //
@@ -166,9 +136,9 @@ const ConnectedPlatformsSidebar = ({user}:{user:any}) => {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {platforms.map(platform =>{
+                {platfromState.supportedPlatforms.map(platform =>{
 
-                  const isConnected = userPlatforms.some((item)=> item.id === platform.id)
+                  const isConnected = platfromState.userPlatforms.some((item)=> item.id === platform.id)
                  
                    return (
                     <div 
@@ -254,8 +224,8 @@ const ConnectedPlatformsSidebar = ({user}:{user:any}) => {
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
-              {platforms
-                .filter(p => p.connected)
+              {platfromState.supportedPlatforms
+                .filter(p => platfromState.userPlatforms.some((platfrm)=> platfrm.id === p.id))
                 .map(platform => (
                   <div 
                     key={platform.id} 

@@ -52,6 +52,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
+import PlatformConnectionDialog from '../PlatformConnectionDialog/PlatformConnectionDialog'
+import PlatformStatusSection from '../PlatfromStatusSection/PlatformStatusSection'
 
 // Types and Interfaces
 interface PostSettings {
@@ -372,131 +374,9 @@ const toggleInput = (input: "hashtags" | "mentions" | "link" | "emoji" | "image"
   setExpandedInput(expandedInput === input ? null : input);
 };
 
-const getStatusColor = (status: Platform['status']) => {
-  switch (status) {
-    case 'active': return 'text-green-500';
-    case 'expired': return 'text-yellow-500';
-    case 'disconnected': return 'text-red-500';
-    default: return '';
-  }
-};
 
-// UI Components
-const PlatformConnectionDialog = () => (
-  <Dialog open={showPlatformConnect} onOpenChange={setShowPlatformConnect}>
-    <DialogContent className="sm:max-w-xl">
-      <DialogHeader>
-        <DialogTitle>Connect Platform</DialogTitle>
-        <DialogDescription>
-          Connect your social media accounts to start posting
-        </DialogDescription>
-      </DialogHeader>
-      <div className="grid gap-4 py-4">
-        {platforms.filter(p => !p.connected).map((platform) => (
-          <div
-            key={platform.id}
-            className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <platform.icon className="w-5 h-5" />
-              <div>
-                <span className="font-medium">{platform.name}</span>
-                <p className="text-sm text-muted-foreground">
-                  {platform.settings?.characterLimit && 
-                    `Up to ${platform.settings.characterLimit} characters`}
-                </p>
-              </div>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-2"
-              onClick={() => {
-                handleConnectPlatform(platform.id);
-                setShowPlatformConnect(false);
-              }}
-            >
-              <ExternalLink className="w-4 h-4" />
-              Connect
-            </Button>
-          </div>
-        ))}
-      </div>
-    </DialogContent>
-  </Dialog>
-);
 
-const PlatformStatusSection = () => (
-  <Card className="mb-6">
-    <CardContent className="p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-medium">Connected Platforms</h3>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-2"
-            onClick={() => setShowPlatformSettings(true)}
-          >
-            <Settings className="w-4 h-4" />
-            Settings
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-2"
-            onClick={() => setShowPlatformConnect(true)}
-          >
-            <Plus className="w-4 h-4" />
-            Add Platform
-          </Button>
-        </div>
-      </div>
-      <div className="space-y-4">
-        {platforms.filter(p => p.connected).map((platform) => (
-          <div
-            key={platform.id}
-            className="flex items-center justify-between p-4 border rounded-lg"
-          >
-            <div className="flex items-center gap-3">
-              <platform.icon className="w-5 h-5" />
-              <div>
-                <div className="font-medium">{platform.name}</div>
-                <div className="text-sm text-muted-foreground">
-                  {platform.accountName}
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="text-sm text-right">
-                <div className={cn("flex items-center gap-1", getStatusColor(platform.status))}>
-                  <Check className="w-4 h-4" />
-                  <span>Active</span>
-                </div>
-                <div className="text-muted-foreground text-xs">
-                  {platform.lastSync && `Last sync: ${platform.lastSync}`}
-                </div>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-red-600 hover:text-red-700 hover:bg-red-100"
-                onClick={() => handleDisconnectPlatform(platform.id)}
-              >
-                Disconnect
-              </Button>
-            </div>
-          </div>
-        ))}
-        {platforms.filter(p => p.connected).length === 0 && (
-          <div className="text-center p-4 text-muted-foreground">
-            No platforms connected. Click "Add Platform" to get started.
-          </div>
-        )}
-      </div>
-    </CardContent>
-  </Card>
-);
+
 
 const PlatformSettingsDialog = () => (
   <Dialog open={showPlatformSettings} onOpenChange={setShowPlatformSettings}>
@@ -580,7 +460,11 @@ return (
         e.preventDefault();
         handleSubmit(e);
       }} className="space-y-6">
-        <PlatformStatusSection />
+        <PlatformStatusSection
+          showPlatformConnect={()=> setShowPlatformConnect(true)}
+          handleDisconnectPlatform={()=>{}}
+          setShowPlatformSettings={()=>{}}
+         />
         
         <div className="flex items-center justify-between gap-4 mb-6">
           <div className="flex flex-wrap gap-2">
@@ -1035,7 +919,10 @@ return (
           </div>
         </form>
 
-        <PlatformConnectionDialog />
+        <PlatformConnectionDialog
+              open={showPlatformConnect}
+              close={()=> setShowPlatformConnect(false)}
+         />
         <PlatformSettingsDialog />
       </CardContent>
     </Card>
