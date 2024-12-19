@@ -63,8 +63,8 @@ import Image from 'next/image'
 
 
 const DRAFT_A_POST = gql`
- mutation Mutation($text: String!, $date: DateTime, $time: DateTime, $hashTags: String!, $clerkId: ID!) {
-  draftPost(text: $text, date: $date, time: $time, hashTags: $hashTags, clerkID: $clerkId) {
+ mutation Mutation($text: String!, $hashTags: String!, $clerkId: ID!) {
+  draftPost(text: $text,hashTags: $hashTags, clerkID: $clerkId) {
      id
      text  
   }
@@ -77,6 +77,14 @@ const POST_NOW = gql`
     id
     text
     hashTags
+  }
+}
+`
+const SCHEDULE_POST = gql`
+  mutation SchedulePost($text: String!, $date: DateTime!, $time: String!, $hashTags: String!, $clerkId: ID!) {
+  schedulePost(text: $text, date: $date, time: $time, hashTags: $hashTags, clerkID: $clerkId) {
+      id
+      text  
   }
 }
 `
@@ -136,6 +144,7 @@ export const CreatePostTab: React.FC<CreatePostTabProps> = () => {
   //GraphQL mutations
   const [draftApost,draftingResponse] = useMutation(DRAFT_A_POST)
   const [postNow,postNowResponse] = useMutation(POST_NOW)
+  const [schedulePost,scheduleResponse] = useMutation(SCHEDULE_POST)
 
 
   // Local State
@@ -154,7 +163,7 @@ export const CreatePostTab: React.FC<CreatePostTabProps> = () => {
   })
 
   const [activePlatformPreview, setActivePlatformPreview] = useState<string>('')
-  const [scheduleDate, setScheduleDate] = useState<Date | null>(null)
+  const [scheduleDate, setScheduleDate] = useState<Date | undefined>(undefined)
   const [scheduleTime, setScheduleTime] = useState<string>("")
   const [showPlatformConnect, setShowPlatformConnect] = useState(false);
   const [showPlatformSettings, setShowPlatformSettings] = useState(false);
@@ -309,7 +318,7 @@ const handleEmojiClick = (emojiObject: { emoji: string }) => {
 };
 
 const handleSchedulePost = () => {
-  if (!selectedPlatforms.length || !newPost || !scheduleDate || !scheduleTime) {
+  if (!selectedPlatforms.length || !newPost || !scheduleDate || !scheduleTime || !user) {
     toast({
       title: "Error",
       description: "Please fill in all required fields",
@@ -328,18 +337,15 @@ const handleSchedulePost = () => {
   
   scheduledDateTime.setHours(hour, parseInt(minutes));
 
-  // const scheduledPost: Post = {
-  //   content: newPost.content,
-  //   platforms: selectedPlatforms,
-  //   scheduledDate: scheduledDateTime,
-  //   settings: newPost.settings,
-  //   hashtags: newPost.hashtags,
-  //   mentions: newPost.mentions,
-  //   link: newPost.link,
-  //   media: mediaFiles.map(file => file.preview)
-  // };
-
-  // addScheduledPost(scheduledPost);
+  schedulePost({
+    variables:{
+      text:newPost.text,
+      hashTags:"#DRAFT",
+      clerkId:user.id,
+      time:scheduleTime,
+      date:scheduleDate
+    }
+  })
   resetForm();
   
   toast({
@@ -772,7 +778,10 @@ return (
                               <Calendar
                                 mode="single"
                                 // selected={scheduleDate}
-                                // onSelect={setScheduleDate}
+                                onSelect={(e)=>{
+                                    console.log(e)
+                                    setScheduleDate(e)
+                                }}
                                 initialFocus
                                 disabled={(date) => date < new Date()}
                               />
@@ -782,7 +791,10 @@ return (
                         
                         <div className="flex flex-col space-y-2">
                           <label className="text-sm font-medium">Time</label>
-                          <Select value={scheduleTime} onValueChange={setScheduleTime}>
+                          <Select value={scheduleTime} onValueChange={(time)=>{
+                            console.log(time)
+                            setScheduleTime(time)
+                          }}>
                             <SelectTrigger>
                               <SelectValue placeholder="Select time">
                                 {scheduleTime || (
