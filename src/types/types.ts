@@ -312,4 +312,13 @@ export interface Platform {
   iconUrl: string;
   connected: boolean;
   status?: 'active' | 'expired' | 'pending';
+  accountName?: string;
+  lastSync?: string;
+  settings?: {
+    characterLimit?: number;
+    mediaTypes?: string[];
+    allowScheduling?: boolean;
+    allowHashtags?: boolean;
+    allowMentions?: boolean;
+  };
 }

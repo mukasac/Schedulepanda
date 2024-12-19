@@ -1,7 +1,7 @@
 // src/components/tabs/create-post-tab.tsx
 "use client"
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useScheduler } from "@/contexts/scheduler-context"
 import { useDrafts } from '@/contexts/drafts-context'
 import { Card, CardContent } from "@/components/ui/card"
@@ -54,6 +54,32 @@ import {
 import { Badge } from "@/components/ui/badge"
 import PlatformConnectionDialog from '../PlatformConnectionDialog/PlatformConnectionDialog'
 import PlatformStatusSection from '../PlatfromStatusSection/PlatformStatusSection'
+import { usePlartformContext } from '@/contexts/platfroms-context'
+import { Platform } from '@/types/types'
+import { gql, useMutation } from '@apollo/client'
+import { useUser } from '@clerk/nextjs'
+import Image from 'next/image'
+
+
+
+const DRAFT_A_POST = gql`
+ mutation Mutation($text: String!, $date: DateTime, $time: DateTime, $hashTags: String!, $clerkId: ID!) {
+  draftPost(text: $text, date: $date, time: $time, hashTags: $hashTags, clerkID: $clerkId) {
+     id
+     text  
+  }
+}
+`
+
+const POST_NOW = gql`
+ mutation PostNow($text: String!, $hashTags: String!, $clerkId: ID!) {
+  postNow(text: $text, hashTags: $hashTags, clerkID: $clerkId) {
+    id
+    text
+    hashTags
+  }
+}
+`
 
 // Types and Interfaces
 interface PostSettings {
@@ -62,7 +88,7 @@ interface PostSettings {
   crossPost: boolean;
 }
 
-interface Post {
+interface Postx {
   content: string;
   platforms: string[];
   scheduledDate: Date | null;
@@ -75,22 +101,13 @@ interface Post {
   media?: string[];
 }
 
-interface Platform {
-  id: string;
-  name: string;
-  icon: any;
-  connected: boolean;
-  status: 'active' | 'expired' | 'disconnected';
-  accountName?: string;
-  lastSync?: string;
-  settings?: {
-    characterLimit?: number;
-    mediaTypes?: string[];
-    allowScheduling?: boolean;
-    allowHashtags?: boolean;
-    allowMentions?: boolean;
-  };
+interface PostData {
+   text:string
+   hashTags:string
+   media:string[]
+   link?:string
 }
+
 
 interface CreatePostTabProps {}
 
@@ -99,24 +116,43 @@ interface UploadedFile {
   type: string;
 }
 export const CreatePostTab: React.FC<CreatePostTabProps> = () => {
+  const {user} = useUser()
   // Context Hooks
   const {
-    newPost,
+    // newPost,
     error,
-    setNewPost,
+    // setNewPost,
     handleSubmit,
     selectedTimeZone,
-    addScheduledPost
+    // addScheduledPost
   } = useScheduler()
+
+
+  const platformState = usePlartformContext()
 
   const { addDraft } = useDrafts();
   const { toast } = useToast();
+
+  //GraphQL mutations
+  const [draftApost,draftingResponse] = useMutation(DRAFT_A_POST)
+  const [postNow,postNowResponse] = useMutation(POST_NOW)
+
 
   // Local State
   const [mediaFiles, setMediaFiles] = useState<UploadedFile[]>([])
   const [activeTab, setActiveTab] = useState<"compose" | "settings">("compose")
   const [expandedInput, setExpandedInput] = useState<"hashtags" | "mentions" | "link" | "emoji" | "image" | null>(null)
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([])
+
+  const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>([])
+  const [platforms,setPlatforms] = useState<Platform[]>([])
+
+  const [newPost,setNewPost] = useState<PostData>({
+    text:"",
+    hashTags:"",
+    media:[],
+    link:undefined
+  })
+
   const [activePlatformPreview, setActivePlatformPreview] = useState<string>('')
   const [scheduleDate, setScheduleDate] = useState<Date | null>(null)
   const [scheduleTime, setScheduleTime] = useState<string>("")
@@ -124,78 +160,78 @@ export const CreatePostTab: React.FC<CreatePostTabProps> = () => {
   const [showPlatformSettings, setShowPlatformSettings] = useState(false);
 
   // Platform Configuration
-  const [platforms, setPlatforms] = useState<Platform[]>([
-    {
-      id: 'facebook',
-      name: 'Facebook',
-      icon: Facebook,
-      connected: false,
-      status: 'disconnected',
-      settings: {
-        characterLimit: 63206,
-        mediaTypes: ['image', 'video', 'gif'],
-        allowScheduling: true,
-        allowHashtags: true,
-        allowMentions: true
-      }
-    },
-    {
-      id: 'twitter',
-      name: 'Twitter',
-      icon: Twitter,
-      connected: false,
-      status: 'disconnected',
-      settings: {
-        characterLimit: 280,
-        mediaTypes: ['image', 'video', 'gif'],
-        allowScheduling: true,
-        allowHashtags: true,
-        allowMentions: true
-      }
-    },
-    {
-      id: 'instagram',
-      name: 'Instagram',
-      icon: Instagram,
-      connected: false,
-      status: 'disconnected',
-      settings: {
-        characterLimit: 2200,
-        mediaTypes: ['image', 'video'],
-        allowScheduling: true,
-        allowHashtags: true,
-        allowMentions: true
-      }
-    },
-    {
-      id: 'linkedin',
-      name: 'LinkedIn',
-      icon: Linkedin,
-      connected: false,
-      status: 'disconnected',
-      settings: {
-        characterLimit: 3000,
-        mediaTypes: ['image', 'video'],
-        allowScheduling: true,
-        allowHashtags: true,
-        allowMentions: true
-      }
-    },
-    {
-      id: 'tiktok',
-      name: 'TikTok',
-      icon: Video,
-      connected: false,
-      status: 'disconnected',
-      settings: {
-        characterLimit: 2200,
-        mediaTypes: ['video'],
-        allowScheduling: true,
-        allowHashtags: true,
-        allowMentions: true
-      }
-    }
-  ]);
+  // const [platformsx, setPlatformsx] = useState<Platform[]>([
+  //   {
+  //     id: 'facebook',
+  //     name: 'Facebook',
+  //     icon: Facebook,
+  //     connected: false,
+  //     status: 'disconnected',
+  //     settings: {
+  //       characterLimit: 63206,
+  //       mediaTypes: ['image', 'video', 'gif'],
+  //       allowScheduling: true,
+  //       allowHashtags: true,
+  //       allowMentions: true
+  //     }
+  //   },
+  //   {
+  //     id: 'twitter',
+  //     name: 'Twitter',
+  //     icon: Twitter,
+  //     connected: false,
+  //     status: 'disconnected',
+  //     settings: {
+  //       characterLimit: 280,
+  //       mediaTypes: ['image', 'video', 'gif'],
+  //       allowScheduling: true,
+  //       allowHashtags: true,
+  //       allowMentions: true
+  //     }
+  //   },
+  //   {
+  //     id: 'instagram',
+  //     name: 'Instagram',
+  //     icon: Instagram,
+  //     connected: false,
+  //     status: 'disconnected',
+  //     settings: {
+  //       characterLimit: 2200,
+  //       mediaTypes: ['image', 'video'],
+  //       allowScheduling: true,
+  //       allowHashtags: true,
+  //       allowMentions: true
+  //     }
+  //   },
+  //   {
+  //     id: 'linkedin',
+  //     name: 'LinkedIn',
+  //     icon: Linkedin,
+  //     connected: false,
+  //     status: 'disconnected',
+  //     settings: {
+  //       characterLimit: 3000,
+  //       mediaTypes: ['image', 'video'],
+  //       allowScheduling: true,
+  //       allowHashtags: true,
+  //       allowMentions: true
+  //     }
+  //   },
+  //   {
+  //     id: 'tiktok',
+  //     name: 'TikTok',
+  //     icon: Video,
+  //     connected: false,
+  //     status: 'disconnected',
+  //     settings: {
+  //       characterLimit: 2200,
+  //       mediaTypes: ['video'],
+  //       allowScheduling: true,
+  //       allowHashtags: true,
+  //       allowMentions: true
+  //     }
+  //   }
+  // ]);
 
   // Time slots generation
   const timeSlots = Array.from({ length: 48 }, (_, i) => {
@@ -206,12 +242,20 @@ export const CreatePostTab: React.FC<CreatePostTabProps> = () => {
     return `${displayHour}:${minute} ${ampm}`
   })
 
+
+  useEffect(()=>{
+     if(platformState){
+         setSelectedPlatforms(platformState.userPlatforms)
+         setPlatforms(platformState.supportedPlatforms)
+     }
+  },[platformState])
+
   const resetForm = () => {
     setNewPost({
-      content: '',
-      platforms: [],
-      scheduledDate: null,
-      settings: {}
+      text: '',
+      hashTags:"",
+      media:[],
+      link:undefined
     });
     setMediaFiles([]);
     setSelectedPlatforms([]);
@@ -220,49 +264,13 @@ export const CreatePostTab: React.FC<CreatePostTabProps> = () => {
     setExpandedInput(null);
   };
 
-// Handlers
-const handleConnectPlatform = (platformId: string) => {
-  setPlatforms(platforms.map(p => 
-    p.id === platformId
-      ? { 
-          ...p, 
-          connected: true, 
-          status: 'active', 
-          lastSync: 'just now',
-          accountName: `Demo Account (${p.name})`
-        }
-      : p
-  ));
 
-  if (!selectedPlatforms.includes(platformId)) {
-    setSelectedPlatforms([...selectedPlatforms, platformId]);
-  }
 
-  toast({
-    title: "Platform Connected",
-    description: `Successfully connected to ${platforms.find(p => p.id === platformId)?.name}`,
-  });
-};
-
-const handleDisconnectPlatform = (platformId: string) => {
-  setPlatforms(platforms.map(p => 
-    p.id === platformId
-      ? { ...p, connected: false, status: 'disconnected', accountName: undefined, lastSync: undefined }
-      : p
-  ));
-
-  setSelectedPlatforms(selectedPlatforms.filter(id => id !== platformId));
-  
-  toast({
-    title: "Platform Disconnected",
-    description: `Disconnected from ${platforms.find(p => p.id === platformId)?.name}`,
-  });
-};
 
 const handleMediaUpload = (files: UploadedFile[]) => {
   const uploadedType = files[0]?.type?.split('/')[0] || 'image';
-  const unsupportedPlatforms = selectedPlatforms.filter(platformId => {
-    const platform = platforms.find(p => p.id === platformId);
+  const unsupportedPlatforms = selectedPlatforms.filter(platfrm => {
+    const platform = platforms.find(p => p.id === platfrm.id);
     return !platform?.settings?.mediaTypes?.includes(uploadedType);
   });
 
@@ -270,7 +278,7 @@ const handleMediaUpload = (files: UploadedFile[]) => {
     toast({
       title: "Unsupported Media Type",
       description: `Some selected platforms don't support ${uploadedType} uploads`,
-      variant: "destructive"
+      // variant: "destructive"
     });
     return;
   }
@@ -280,30 +288,32 @@ const handleMediaUpload = (files: UploadedFile[]) => {
 };
 
 const handleEmojiClick = (emojiObject: { emoji: string }) => {
+
+  if(!newPost) return 
   const platform = platforms.find(p => p.id === activePlatformPreview);
-  const newContent = newPost.content + emojiObject.emoji;
+  const newContent = newPost.text + emojiObject.emoji;
 
   if (platform?.settings?.characterLimit && newContent.length > platform.settings.characterLimit) {
     toast({
       title: "Character Limit Exceeded",
       description: `${platform.name} has a limit of ${platform.settings.characterLimit} characters`,
-      variant: "destructive"
+      // variant: "destructive"
     });
     return;
   }
 
   setNewPost({
     ...newPost,
-    content: newContent
+    text: newContent
   });
 };
 
 const handleSchedulePost = () => {
-  if (!selectedPlatforms.length || !newPost.content || !scheduleDate || !scheduleTime) {
+  if (!selectedPlatforms.length || !newPost || !scheduleDate || !scheduleTime) {
     toast({
       title: "Error",
       description: "Please fill in all required fields",
-      variant: "destructive"
+      // variant: "destructive"
     });
     return;
   }
@@ -318,18 +328,18 @@ const handleSchedulePost = () => {
   
   scheduledDateTime.setHours(hour, parseInt(minutes));
 
-  const scheduledPost: Post = {
-    content: newPost.content,
-    platforms: selectedPlatforms,
-    scheduledDate: scheduledDateTime,
-    settings: newPost.settings,
-    hashtags: newPost.hashtags,
-    mentions: newPost.mentions,
-    link: newPost.link,
-    media: mediaFiles.map(file => file.preview)
-  };
+  // const scheduledPost: Post = {
+  //   content: newPost.content,
+  //   platforms: selectedPlatforms,
+  //   scheduledDate: scheduledDateTime,
+  //   settings: newPost.settings,
+  //   hashtags: newPost.hashtags,
+  //   mentions: newPost.mentions,
+  //   link: newPost.link,
+  //   media: mediaFiles.map(file => file.preview)
+  // };
 
-  addScheduledPost(scheduledPost);
+  // addScheduledPost(scheduledPost);
   resetForm();
   
   toast({
@@ -339,16 +349,22 @@ const handleSchedulePost = () => {
 };
 
 const handleSaveDraft = () => {
-  if (!selectedPlatforms.length || !newPost.content) {
+  if (!selectedPlatforms.length || !newPost || !user) {
     toast({
       title: "Error",
       description: "Please select platforms and add content",
-      variant: "destructive"
+      // variant: "destructive"
     });
     return;
   }
 
-  addDraft(newPost);
+  draftApost({
+    variables:{
+      text:newPost.text,
+      hashTags:"#DRAFT",
+      clerkId:user.id
+    }
+  })
   resetForm();
   
   toast({
@@ -357,16 +373,44 @@ const handleSaveDraft = () => {
   });
 };
 
+
+
+const handlePostingNow = () => {
+  if (!selectedPlatforms.length || !newPost || !user) {
+    toast({
+      title: "Error",
+      description: "Please select platforms and add content",
+      // variant: "destructive"
+    });
+    return;
+  }
+
+  postNow({
+    variables:{
+      text:newPost.text,
+      hashTags:"#DRAFT",
+      clerkId:user.id
+    }
+  })
+  resetForm();
+  
+  toast({
+    title: "Success",
+    description: "Draft saved successfully",
+  });
+};
+
+
 const updatePlatformSettings = (platformId: string, setting: keyof PostSettings, value: boolean) => {
   setNewPost({
     ...newPost,
-    settings: {
-      ...newPost.settings,
-      [platformId]: {
-        ...newPost.settings?.[platformId],
-        [setting]: value
-      }
-    }
+    // settings: {
+    //   ...newPost.settings,
+    //   [platformId]: {
+    //     ...newPost.settings?.[platformId],
+    //     [setting]: value
+    //   }
+    // }
   });
 };
 
@@ -391,7 +435,9 @@ const PlatformSettingsDialog = () => (
         {platforms.filter(p => p.connected).map((platform) => (
           <div key={platform.id} className="space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b">
-              <platform.icon className="w-5 h-5" />
+            <div className="w-4 h-4" >
+                              <Image src={platform.iconUrl} width={50} height={50} alt="logo" />
+                            </div>
               <h3 className="font-medium">{platform.name}</h3>
             </div>
             <div className="grid gap-4">
@@ -462,25 +508,24 @@ return (
       }} className="space-y-6">
         <PlatformStatusSection
           showPlatformConnect={()=> setShowPlatformConnect(true)}
-          handleDisconnectPlatform={()=>{}}
           setShowPlatformSettings={()=>{}}
          />
         
         <div className="flex items-center justify-between gap-4 mb-6">
           <div className="flex flex-wrap gap-2">
-            {platforms.filter(p => p.connected).map((platform) => (
+            {platformState.userPlatforms.map((platform) => (
               <Button
                 key={platform.id}
-                variant={selectedPlatforms.includes(platform.id) ? "default" : "outline"}
+                variant={selectedPlatforms.some((item)=> item.id === platform.id) ? "default" : "outline"}
                 size="sm"
                 onClick={() => {
-                  if (selectedPlatforms.includes(platform.id)) {
-                    setSelectedPlatforms(selectedPlatforms.filter(id => id !== platform.id));
+                  if (selectedPlatforms.some((item)=> item.id === platform.id)) {
+                    setSelectedPlatforms(selectedPlatforms.filter(platfrm => platfrm.id !== platform.id));
                     if (activePlatformPreview === platform.id) {
-                      setActivePlatformPreview(selectedPlatforms[0] || '');
+                      setActivePlatformPreview(selectedPlatforms[0].id || '');
                     }
                   } else {
-                    setSelectedPlatforms([...selectedPlatforms, platform.id]);
+                    setSelectedPlatforms([...selectedPlatforms, platform]);
                     if (!activePlatformPreview) {
                       setActivePlatformPreview(platform.id);
                     }
@@ -488,11 +533,13 @@ return (
                 }}
                 className="gap-2"
               >
-                <platform.icon className="w-4 h-4" />
+                 <div className="w-4 h-4" >
+                              <Image src={platform.iconUrl} width={50} height={50} alt="logo" />
+                            </div>
                 {platform.name}
                 {platform.settings?.characterLimit && (
                   <span className="text-xs text-muted-foreground">
-                    ({newPost.content.length}/{platform.settings.characterLimit})
+                    ({newPost.text.length}/{platform.settings.characterLimit})
                   </span>
                 )}
               </Button>
@@ -513,11 +560,11 @@ return (
                   <div className="space-y-2">
                     <Textarea
                       placeholder="What's on your mind?"
-                      value={newPost.content}
+                      value={newPost.text}
                       onChange={(e) => {
                         const newContent = e.target.value;
                         const exceedsPlatforms = selectedPlatforms
-                          .map(id => platforms.find(p => p.id === id))
+                          .map(platfrm => platforms.find(p => p.id === platfrm.id))
                           .filter(platform => 
                             platform?.settings?.characterLimit && 
                             newContent.length > platform.settings.characterLimit
@@ -527,12 +574,12 @@ return (
                           toast({
                             title: "Character Limit Exceeded",
                             description: `Content exceeds limit for ${exceedsPlatforms[0]?.name}`,
-                            variant: "destructive"
+                            // variant: "destructive"
                           });
                           return;
                         }
 
-                        setNewPost({ ...newPost, content: newContent });
+                        setNewPost({ ...newPost, text: newContent });
                       }}
                       className="min-h-[120px] text-base resize-none"
                     />
@@ -544,8 +591,8 @@ return (
                         size="sm"
                         onClick={() => toggleInput("hashtags")}
                         className={`p-2 ${expandedInput === "hashtags" ? "bg-muted" : ""}`}
-                        disabled={!selectedPlatforms.some(id => 
-                          platforms.find(p => p.id === id)?.settings?.allowHashtags
+                        disabled={!selectedPlatforms.some(platfrm => 
+                          platforms.find(p => p.id === platfrm.id)?.settings?.allowHashtags
                         )}
                       >
                         <Hash className="h-4 w-4" />
@@ -556,8 +603,8 @@ return (
                         size="sm"
                         onClick={() => toggleInput("mentions")}
                         className={`p-2 ${expandedInput === "mentions" ? "bg-muted" : ""}`}
-                        disabled={!selectedPlatforms.some(id => 
-                          platforms.find(p => p.id === id)?.settings?.allowMentions
+                        disabled={!selectedPlatforms.some(platfrm => 
+                          platforms.find(p => p.id === platfrm.id)?.settings?.allowMentions
                         )}
                       >
                         <AtSign className="h-4 w-4" />
@@ -586,9 +633,9 @@ return (
                         size="sm"
                         onClick={() => toggleInput("image")}
                         className={`p-2 ${expandedInput === "image" ? "bg-muted" : ""}`}
-                        disabled={!selectedPlatforms.some(id => {
-                          const platform = platforms.find(p => p.id === id);
-                          return platform?.settings?.mediaTypes?.length > 0;
+                        disabled={!selectedPlatforms.some(platfrm => {
+                          const platform = platforms.find(p => p.id === platfrm.id);
+                          // return platform?.settings?.mediaTypes?.length > 0;
                         })}
                       >
                         <ImageIcon className="h-4 w-4" />
@@ -616,12 +663,12 @@ return (
                               onUpload={handleMediaUpload}
                               maxFiles={4}
                               accept={selectedPlatforms
-                                .map(id => platforms.find(p => p.id === id)?.settings?.mediaTypes)
+                                .map(platform => platforms.find(p => p.id === platform.id)?.settings?.mediaTypes)
                                 .flat()
                                 .filter((type): type is string => !!type)
                                 .map(type => `${type}/*`)
                                 .join(',')}
-                              className="border-2 border-dashed rounded-lg p-8 bg-muted/50 hover:bg-muted/70 transition-colors"
+                                // className="border-2 border-dashed rounded-lg p-8 bg-muted/50 hover:bg-muted/70 transition-colors"
                             />
                             <Button
                               type="button"
@@ -645,10 +692,10 @@ return (
                               }
                               value={
                                 expandedInput === "hashtags"
-                                  ? newPost.hashtags
-                                  : expandedInput === "mentions"
-                                  ? newPost.mentions
-                                  : newPost.link || ''
+                                  ? newPost.hashTags
+                                  : "mentions"
+                                  // ? newPost.mentions
+                                  // : newPost.link || ''
                               }
                               onChange={(e) =>
                                 setNewPost({
@@ -724,8 +771,8 @@ return (
                             <PopoverContent className="w-auto p-0">
                               <Calendar
                                 mode="single"
-                                selected={scheduleDate}
-                                onSelect={setScheduleDate}
+                                // selected={scheduleDate}
+                                // onSelect={setScheduleDate}
                                 initialFocus
                                 disabled={(date) => date < new Date()}
                               />
@@ -763,14 +810,16 @@ return (
                     <h3 className="text-sm font-medium mb-4">Platform-Specific Settings</h3>
                     {selectedPlatforms.length > 0 ? (
                       <div className="space-y-6">
-                        {selectedPlatforms.map((platformId) => {
-                          const platform = platforms.find(p => p.id === platformId);
+                        {selectedPlatforms.map((platform) => {
+                          
                           if (!platform) return null;
                           
                           return (
                             <div key={platform.id} className="space-y-3 pb-3 border-b last:border-0">
                               <div className="flex items-center gap-2">
-                                <platform.icon className="w-5 h-5" />
+                              <div className="w-4 h-4" >
+                              <Image src={platform.iconUrl} width={50} height={50} alt="logo" />
+                            </div>
                                 <h4 className="font-medium">{platform.name}</h4>
                               </div>
                               <div className="space-y-2">
@@ -833,17 +882,19 @@ return (
               {selectedPlatforms.length > 0 ? (
                 <>
                   <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-2">
-                  {selectedPlatforms.map((platformId) => {
-                        const platform = platforms.find(p => p.id === platformId);
+                  {selectedPlatforms.map((platform) => {
+                        
                         return platform ? (
                           <Button
-                            key={platformId}
-                            variant={platformId === activePlatformPreview ? "default" : "outline"}
+                            key={platform.id}
+                            variant={platform.id === activePlatformPreview ? "default" : "outline"}
                             size="sm"
-                            onClick={() => setActivePlatformPreview(platformId)}
+                            onClick={() => setActivePlatformPreview(platform.id)}
                             className="whitespace-nowrap gap-2"
                           >
-                            <platform.icon className="w-4 h-4" />
+                            <div className="w-4 h-4" >
+                              <Image src={platform.iconUrl} width={50} height={50} alt="logo" />
+                            </div>
                             {platform.name}
                           </Button>
                         ) : null;
@@ -851,7 +902,7 @@ return (
                     </div>
                     <ScrollArea className="h-[calc(100vh-300px)]">
                       <div className={`preview-${activePlatformPreview.toLowerCase()} min-h-[200px] bg-muted/50 rounded-lg p-4`}>
-                        <p className="text-foreground whitespace-pre-wrap">{newPost.content}</p>
+                        <p className="text-foreground whitespace-pre-wrap">{newPost.text}</p>
                         {mediaFiles.length > 0 && (
                           <div className="grid grid-cols-2 gap-4 mt-4">
                             {mediaFiles.map((file, index) => (
@@ -869,9 +920,9 @@ return (
                             {newPost.link}
                           </div>
                         )}
-                        {newPost.hashtags && (
+                        {newPost.hashTags && (
                           <div className="mt-2 text-primary">
-                            {newPost.hashtags}
+                            {newPost.hashTags}
                           </div>
                         )}
                       </div>
@@ -898,21 +949,22 @@ return (
               type="button"
               variant="outline"
               onClick={handleSaveDraft}
-              disabled={!selectedPlatforms.length || !newPost.content}
+              disabled={!selectedPlatforms.length || !newPost.text.length}
             >
               Save Draft
             </Button>
             <Button
               type="button"
               variant="default"
-              onClick={handleSchedulePost}
-              disabled={!selectedPlatforms.length || !newPost.content || !scheduleDate || !scheduleTime}
+              onClick={()=>handleSchedulePost()}
+              disabled={!selectedPlatforms.length || newPost.text.length === 0 || !scheduleDate || !scheduleTime}
             >
               Schedule Post
             </Button>
             <Button 
               type="submit"
-              disabled={!selectedPlatforms.length || !newPost.content}
+              disabled={!selectedPlatforms.length || newPost.text.length === 0}
+              onClick={()=>handlePostingNow()}
             >
               Post Now
             </Button>
