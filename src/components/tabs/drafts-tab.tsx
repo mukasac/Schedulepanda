@@ -52,8 +52,8 @@ export const DraftsTab: React.FC = () => {
       <ScrollArea className="h-[calc(100vh-200px)]">
         <div className="space-y-4">
           {drafts.map(draft => {
-            const platform = PLATFORM_INFO[draft.platforms?.[0]] || {
-              name: draft.platforms?.[0] || 'Unknown',
+            const platform = PLATFORM_INFO[draft.platforms?.[0].name] || {
+              name: draft.platforms?.[0].name || 'Unknown',
               icon: "📝",
               Component: Pencil
             };
@@ -93,14 +93,14 @@ export const DraftsTab: React.FC = () => {
                     {formatDistanceToNow(new Date(draft.createdAt), { addSuffix: true })}
                   </p>
                   
-                  <p className="mt-4 text-sm line-clamp-3">{draft.content}</p>
+                  <p className="mt-4 text-sm line-clamp-3">{draft.text}</p>
                   
                   {draft.media && draft.media.length > 0 && (
                     <div className="grid grid-cols-2 gap-2 mt-4">
                       {draft.media.map((url, index) => (
                         <img
                           key={index}
-                          src={url}
+                          src={url.url}
                           alt={`Draft media ${index + 1}`}
                           className="w-full h-20 object-cover rounded-md"
                         />

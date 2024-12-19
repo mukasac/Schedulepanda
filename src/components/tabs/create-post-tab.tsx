@@ -63,8 +63,8 @@ import Image from 'next/image'
 
 
 const DRAFT_A_POST = gql`
- mutation Mutation($text: String!, $hashTags: String!, $clerkId: ID!) {
-  draftPost(text: $text,hashTags: $hashTags, clerkID: $clerkId) {
+ mutation Mutation($text: String!, $hashTags: String!, $clerkId: ID!,$platformIds: [String!]!) {
+  draftPost(text: $text,hashTags: $hashTags, clerkID: $clerkId,platformIds:$platformIds) {
      id
      text  
   }
@@ -72,8 +72,8 @@ const DRAFT_A_POST = gql`
 `
 
 const POST_NOW = gql`
- mutation PostNow($text: String!, $hashTags: String!, $clerkId: ID!) {
-  postNow(text: $text, hashTags: $hashTags, clerkID: $clerkId) {
+ mutation PostNow($text: String!, $hashTags: String!, $clerkId: ID!,$platformIds: [String!]!) {
+  postNow(text: $text, hashTags: $hashTags, clerkID: $clerkId,platformIds:$platformIds) {
     id
     text
     hashTags
@@ -81,8 +81,8 @@ const POST_NOW = gql`
 }
 `
 const SCHEDULE_POST = gql`
-  mutation SchedulePost($text: String!, $date: DateTime!, $time: String!, $hashTags: String!, $clerkId: ID!) {
-  schedulePost(text: $text, date: $date, time: $time, hashTags: $hashTags, clerkID: $clerkId) {
+  mutation SchedulePost($text: String!, $date: DateTime!, $time: String!, $hashTags: String!, $clerkId: ID!,$platformIds: [String!]!) {
+  schedulePost(text: $text, date: $date, time: $time, hashTags: $hashTags, clerkID: $clerkId,platformIds:$platformIds) {
       id
       text  
   }
@@ -268,7 +268,7 @@ export const CreatePostTab: React.FC<CreatePostTabProps> = () => {
     });
     setMediaFiles([]);
     setSelectedPlatforms([]);
-    setScheduleDate(null);
+    setScheduleDate(undefined);
     setScheduleTime("");
     setExpandedInput(null);
   };
@@ -343,7 +343,8 @@ const handleSchedulePost = () => {
       hashTags:"#DRAFT",
       clerkId:user.id,
       time:scheduleTime,
-      date:scheduleDate
+      date:scheduleDate,
+      platformIds:selectedPlatforms.map((p)=> p.id)
     }
   })
   resetForm();
@@ -368,7 +369,8 @@ const handleSaveDraft = () => {
     variables:{
       text:newPost.text,
       hashTags:"#DRAFT",
-      clerkId:user.id
+      clerkId:user.id,
+      platformIds:selectedPlatforms.map((p)=> p.id)
     }
   })
   resetForm();
@@ -395,7 +397,8 @@ const handlePostingNow = () => {
     variables:{
       text:newPost.text,
       hashTags:"#DRAFT",
-      clerkId:user.id
+      clerkId:user.id,
+      platformIds:selectedPlatforms.map((p)=> p.id)
     }
   })
   resetForm();

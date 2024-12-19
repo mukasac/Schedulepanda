@@ -47,11 +47,11 @@ export interface SystemError {
 
 // Enhanced Post Interface
 export interface Post {
-  id?: number;
-  content: string;
+  id: string;
+  text: string;
   date?: string;
   time?: string;
-  platform: string;
+  platforms:Platform[];
   hashtags?: string;
   category: string;
   tags?: string[];
@@ -69,6 +69,7 @@ export interface Post {
   history?: PostHistory[];
   approvalStatus?: ApprovalStatus;
   priority?: 'low' | 'normal' | 'high';
+  createdAt:any
 }
 
 export interface MediaItem {
