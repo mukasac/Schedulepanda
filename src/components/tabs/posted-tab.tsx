@@ -27,15 +27,56 @@ import {
 } from "@/components/ui/hover-card"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
+import { gql, useQuery } from "@apollo/client"
+import { useUser } from "@clerk/nextjs"
+
+
+const GET_POSTED_POSTS = gql`
+ query GetPostedPosts($clerkId: ID!) {
+  getPostedPosts(clerkID: $clerkId) {
+    text
+    id
+    createdAt
+    platforms {
+      id
+      name
+      iconUrl
+    }
+  }
+}
+`
 
 export function PostedTab() {
-  const { posts } = useScheduler()
+  
+  const {user} = useUser()
+
+  //
+  const {data,error} = useQuery(GET_POSTED_POSTS,{
+    variables:{
+      clerkId:user?.id
+    }
+  })
   const [selectedDate, setSelectedDate] = React.useState<Date>()
   const [selectedPlatform, setSelectedPlatform] = React.useState<string>("all")
   const [sortBy, setSortBy] = React.useState<"recent" | "engagement" | "views">("recent")
+  const [posts,setPosts] = React.useState<Post[]>([])
+  
+
+
+  React.useEffect(()=>{
+    console.log(data)
+     if(data && data.getPostedPosts){
+       setPosts(data.getPostedPosts)
+     }
+
+     if(error){
+        console.log(error,'---->')
+     }
+  },[data,error])
 
   const filteredPosts = React.useMemo(() => {
-    let filtered = posts.filter(post => post.status === 'published')
+
+    let filtered = posts
 
     if (selectedDate) {
       filtered = filtered.filter(post => {
@@ -45,7 +86,7 @@ export function PostedTab() {
     }
 
     if (selectedPlatform !== "all") {
-      filtered = filtered.filter(post => post.platform === selectedPlatform)
+      // filtered = filtered.filter(post => post.platform.id === selectedPlatform)
     }
 
     return filtered.sort((a, b) => {
@@ -77,12 +118,16 @@ export function PostedTab() {
       <CardContent className="p-4">
         <div className="flex justify-between items-start mb-4">
           <div className="flex items-center gap-2">
-            <Badge 
+            {
+              post.platforms.map((platform)=>(
+                <Badge 
               variant="outline" 
               className="capitalize font-semibold"
             >
-              {post.platform}
+              {platform.name}
             </Badge>
+              ))
+            }
             <HoverCard>
               <HoverCardTrigger asChild>
                 <Button variant="ghost" size="sm" className="gap-2">
@@ -104,14 +149,14 @@ export function PostedTab() {
         </div>
         
         <div className="space-y-4">
-          <p className="text-sm">{post.content}</p>
+          <p className="text-sm">{post.text}</p>
           
           {post.media && post.media.length > 0 && (
             <div className="grid grid-cols-2 gap-2">
               {post.media.map((url, i) => (
                 <img 
                   key={i}
-                  src={url}
+                  src={url.url}
                   alt={`Post media ${i + 1}`}
                   className="rounded-md w-full h-32 object-cover"
                 />

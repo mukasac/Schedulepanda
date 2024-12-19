@@ -8,13 +8,13 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 
-import { Platform } from "@/types/types"
-import React, { useEffect, useState } from "react";
+
+import React from "react";
 import { useToast } from "../ui/use-toast";
 import { Button } from "../ui/button";
 import { ExternalLink, Link, LogOut, Settings, Shield, UserPlus } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
-import { gql, useMutation, useQuery } from "@apollo/client";
+import { gql, useMutation } from "@apollo/client";
 import Image from "next/image";
 import { useUser } from "@clerk/nextjs";
 import { GET_USER_PLATFROMS, usePlartformContext } from "@/contexts/platfroms-context";
