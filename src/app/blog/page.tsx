@@ -20,6 +20,7 @@ import { Navigation } from "@/components/layout/navigation"
 import { Footer } from "@/components/layout/footer"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import { Suspense } from "react"
 
 const categories = [
   "All",
@@ -111,6 +112,7 @@ const trendingTopics = [
 
 export default function BlogPage() {
   return (
+    <Suspense>
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800">
       <Navigation />
       
@@ -320,5 +322,6 @@ export default function BlogPage() {
 
       <Footer />
     </div>
+    </Suspense>
   )
 }

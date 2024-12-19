@@ -17,6 +17,7 @@ import { motion } from "framer-motion"
 import { Navigation } from "@/components/layout/navigation"
 import { Footer } from "@/components/layout/footer"
 import { Badge } from "@/components/ui/badge"
+import { Suspense } from "react"
 
 const stats = [
   { label: "Active Users", value: "50K+", description: "Trusted by marketers worldwide" },
@@ -98,10 +99,12 @@ const team = [
   }
 ]
 
-export default function AboutPage() {
+export default function Page() {
+
   return (
+    <Suspense>
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800">
-      <Navigation />
+      {/* <Navigation /> */}
       
       <main className="pt-20">
         <div className="container mx-auto px-6 py-20">
@@ -244,5 +247,6 @@ export default function AboutPage() {
 
       <Footer />
     </div>
+    </Suspense>
   )
 }

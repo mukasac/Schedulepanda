@@ -178,7 +178,9 @@ export default function AdminPanel() {
             <div className="flex items-center gap-2">
               <span className="font-semibold text-lg">Admin Dashboard</span>
               {systemStatus?.maintenance && (
-                <Badge variant="warning" className="text-xs">
+                <Badge 
+                // variant="warning" 
+                className="text-xs">
                   Maintenance Mode
                 </Badge>
               )}
@@ -191,7 +193,10 @@ export default function AdminPanel() {
                 type="search"
                 placeholder="Search..."
                 className="w-full md:w-[300px] lg:w-[400px]"
-                prefix={<Search className="h-4 w-4 text-muted-foreground" />}
+                prefix={
+                // <Search className="h-4 w-4 text-muted-foreground" />
+                "Search"
+              }
               />
             </div>
 

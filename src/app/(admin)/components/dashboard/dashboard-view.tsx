@@ -258,7 +258,9 @@ export function DashboardView() {
       {/* System Alerts */}
       {Object.entries(platformStatus).map(([platform, status]) => 
         status.rateLimitRemaining < 300 && (
-          <Alert key={platform} variant="warning">
+          <Alert key={platform}
+          //  variant="warning"
+           >
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>API Rate Limit Warning</AlertTitle>
             <AlertDescription>
@@ -358,7 +360,7 @@ export function DashboardView() {
 }
 
 // Helper Components
-function QuickStatCard({ title, value, change, changeType, icon: Icon, description }) {
+function QuickStatCard({ title, value, change, changeType, icon: Icon, description }:any) {
   return (
     <Card>
       <CardContent className="p-6">
@@ -396,7 +398,7 @@ function QuickStatCard({ title, value, change, changeType, icon: Icon, descripti
   );
 }
 
-function PlatformPerformanceCard({ platformStatus, onPlatformClick }) {
+function PlatformPerformanceCard({ platformStatus, onPlatformClick }:any) {
   return (
     <Card>
       <CardHeader>
@@ -405,7 +407,7 @@ function PlatformPerformanceCard({ platformStatus, onPlatformClick }) {
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
-          {Object.entries(platformStatus).map(([platform, status]) => (
+          {Object.entries(platformStatus).map(([platform, status]:any) => (
             <div
               key={platform}
               className="flex items-center justify-between cursor-pointer hover:bg-muted/50 p-2 rounded-lg transition-colors"
@@ -424,11 +426,13 @@ function PlatformPerformanceCard({ platformStatus, onPlatformClick }) {
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                <Badge variant={
-                  status.rateLimitRemaining > 1000 ? "success" :
-                  status.rateLimitRemaining > 300 ? "warning" :
-                  "destructive"
-                }>
+                <Badge 
+                // variant={
+                //   status.rateLimitRemaining > 1000 ? "success" :
+                //   status.rateLimitRemaining > 300 ? "warning" :
+                //   "destructive"
+                // }
+                >
                   {status.rateLimitRemaining} requests
                 </Badge>
                 <Button variant="ghost" size="icon">
@@ -548,7 +552,7 @@ function SubscriptionDistributionCard({ plans }) {
   );
 }
 
-function RevenueOverviewCard({ data }) {
+function RevenueOverviewCard({ data }:any) {
   return (
     <Card>
       <CardHeader>

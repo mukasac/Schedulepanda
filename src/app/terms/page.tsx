@@ -22,6 +22,7 @@ import {
   Clock,
   Handshake
 } from "lucide-react"
+import { Suspense } from "react"
 
 const sections = [
   {
@@ -114,6 +115,8 @@ const lastUpdated = "March 15, 2024"
 
 export default function TermsPage() {
   return (
+
+    <Suspense>
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800">
       <Navigation />
       
@@ -246,5 +249,6 @@ export default function TermsPage() {
 
       <Footer />
     </div>
+    </Suspense>
   )
 }

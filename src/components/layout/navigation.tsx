@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Menu, X } from 'lucide-react'
 import {
@@ -42,7 +42,7 @@ export function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
-    <>
+    <Suspense>
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700">
         <nav className="container mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center space-x-2">
@@ -128,6 +128,6 @@ export function Navigation() {
           </div>
         </div>
       )}
-    </>
+    </Suspense>
   )
 }

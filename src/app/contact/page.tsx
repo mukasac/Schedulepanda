@@ -32,6 +32,7 @@ import { motion } from "framer-motion"
 import { Navigation } from "@/components/layout/navigation"
 import { Footer } from "@/components/layout/footer"
 import { Badge } from "@/components/ui/badge"
+import { Suspense } from "react"
 
 const contactMethods = [
   {
@@ -104,6 +105,7 @@ const categories = [
 
 export default function ContactPage() {
   return (
+    <Suspense>
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800">
       <Navigation />
       
@@ -268,5 +270,6 @@ export default function ContactPage() {
 
       <Footer />
     </div>
+    </Suspense>
   )
 }

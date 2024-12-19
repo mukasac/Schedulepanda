@@ -13,7 +13,7 @@ interface SystemStatusProps {
 }
 
 export function SystemStatus({ systemHealth }: SystemStatusProps) {
-  const SystemStatusCard = ({ title, status, metric, icon: Icon }) => (
+  const SystemStatusCard = ({ title, status, metric, icon: Icon }:any) => (
     <Card>
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
