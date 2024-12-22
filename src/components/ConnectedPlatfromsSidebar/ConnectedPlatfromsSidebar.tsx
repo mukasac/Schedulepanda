@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/card"
 
 
-import React from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useToast } from "../ui/use-toast";
 import { Button } from "../ui/button";
 import { ExternalLink, Link, LogOut, Settings, Shield, UserPlus } from "lucide-react";
@@ -18,14 +18,15 @@ import { gql, useMutation } from "@apollo/client";
 import Image from "next/image";
 import { useUser } from "@clerk/nextjs";
 import { GET_USER_PLATFROMS, usePlartformContext } from "@/contexts/platfroms-context";
+import { useRouter, useSearchParams } from "next/navigation";
 
 
 
 
 
 export const CONNECT_PLATFORM = gql`
-mutation Mutation($platformId: ID!, $clerkId: ID!) {
-  connectUserToAplatform(platformId: $platformId, clerkId: $clerkId) {
+mutation Mutation($platformId: ID!, $clerkId: ID!,$code:String!) {
+  connectUserToAplatform(platformId: $platformId, clerkId: $clerkId,code:$code) {
     id
   }
 }
@@ -44,8 +45,24 @@ mutation Mutation($platformId: ID!, $clerkId: ID!) {
 
 // Connected Platforms Sidebar Component
 const ConnectedPlatformsSidebar = ({user}:{user:any}) => {
+
+    const clientID = "77qfomi01tomrr"
+    const secret = "WPL_AP1.yqGImzZh99t5O8ss.QuL7Hg=="
+    const redirectUrl = "http://localhost:3000/scheduler"
+    const state = "er4456096955943ee"
    
     const platfromState = usePlartformContext()
+    const router = useRouter()
+    const searchParams = useSearchParams()
+    const code = searchParams.get("code")
+    const _state = searchParams.get("state")
+    const authError = searchParams.get("error")
+
+    //getPlatform id from local storage after refresh
+   const platformId = localStorage.getItem("_platformID")
+    
+
+
 
      const [connectUserToPlatform,connectionResponse] = useMutation(CONNECT_PLATFORM,{
       refetchQueries:[
@@ -76,27 +93,51 @@ const ConnectedPlatformsSidebar = ({user}:{user:any}) => {
     
   
     const [showPlatformSettings, setShowPlatformSettings] = React.useState(false);
+    const [statex, setStatex] = useState(false);
     const { toast } = useToast();
 
 
+   const handleConnect = useCallback(()=>{
+     
+       if(code && _state && platformId ){
 
+        //check if _state is same
+        if(_state === state ){
+          connectUserToPlatform({
+            variables:{
+              platformId:platformId,
+              clerkId:user.id,
+              code:code
+            }
+           })
 
-
-  
-    const handleConnectPlatform =(platformId: string) => {
-       //
-       if(user){
-        connectUserToPlatform({
-          variables:{
-            platformId:platformId,
-            clerkId:user.id
-          }
-         })
+           localStorage.removeItem("_platformID")
+        }
+           
        }
-      toast({
-        title: "Platform Connected",
-        description: "You can now start posting to this platform.",
-      });
+
+       if(authError){
+          console.log("User has refused to authorize")
+       }
+    },[code,_state,authError,platformId,state])
+
+
+    useEffect(()=>{
+     code && platformId && handleConnect()
+    },[code, platformId, authError])
+
+     
+
+   const handleRedirectToLinkedIn=()=>{
+    const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientID}&redirect_uri=${redirectUrl}&state=${state}&scope=w_member_social%20r_liteprofile`
+    router.push(authUrl)
+    
+   }
+
+   
+  
+    const handleConnectPlatform =() => {
+        handleRedirectToLinkedIn()
     };
   
     const handleDisconnectPlatform = (platformId: string) => {
@@ -160,9 +201,15 @@ const ConnectedPlatformsSidebar = ({user}:{user:any}) => {
                       <Button 
                         variant={isConnected ? "outline" : "secondary"}
                         size="sm"
-                        onClick={() => isConnected 
-                          ? handleDisconnectPlatform(platform.id)
-                          : handleConnectPlatform(platform.id)
+                        onClick={() =>{
+                          if(isConnected){
+                           handleDisconnectPlatform(platform.id)
+                          }else{
+            
+                            localStorage.setItem("_platformID",platform.id)
+                            handleConnectPlatform()
+                          }
+                        }
                         }
                       >
                         {isConnected ? (

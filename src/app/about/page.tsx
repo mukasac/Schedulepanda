@@ -104,7 +104,7 @@ export default function Page() {
   return (
     <Suspense>
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800">
-      {/* <Navigation /> */}
+      <Navigation />
       
       <main className="pt-20">
         <div className="container mx-auto px-6 py-20">
